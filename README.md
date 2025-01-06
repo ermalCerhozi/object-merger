@@ -1,59 +1,52 @@
-# ObjectMerger
+# :zap: Object Merger
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.6.
+* This app was generated with [Angular CLI](https://github.com/angular/angular-cli) version 19.0.6.
 
-## Development server
+## :page_facing_up: Table of contents
 
-To start a local development server, run:
+* [:zap: Object Merger](#object-merger)
+  * [:books: General info](#books-general-info)
+  * [:camera: Screenshots](#camera-screenshots)
+  * [:signal_strength: Technologies](#signal_strength-technologies)
+  * [:floppy_disk: Setup](#floppy_disk-setup)
+  * [:cool: Features](#cool-features)
+  * [:clipboard: Status & To-Do List](#clipboard-status--to-do-list)
+  <!-- * [:file_folder: License](#file_folder-license) -->
+  * [:envelope: Contact](#envelope-contact)
 
-```bash
-ng serve
-```
+## :books: General info
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+* Highlights the differences between two objects, allowing you to select and merge the desired information from each object.
 
-## Code scaffolding
+## :camera: Screenshots
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+    <img src="screenshots/unmerged.png" alt="Login" width="408"/>
+    <img src="screenshots/merged.png" alt="Chart" width="408"/>
+</div>
 
-```bash
-ng generate component component-name
-```
+## :signal_strength: Technologies
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+* [Angular v19](https://angular.io/)
+* [Angular Material](https://v19.material.angular.io/)
+* [diff-match-patch](https://www.npmjs.com/package/diff-match-patch/)
 
-```bash
-ng generate --help
-```
+## :floppy_disk: Setup
 
-## Building
+* git clone `https://github.com/ermalCerhozi/object-merger.git`.
+* Install dependencies using `npm install`.
+* Run `ng serve`.
+* Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
-To build the project run:
+## :cool: Features
 
-```bash
-ng build
-```
+* Side by side or line by line views.
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## :clipboard: Status & To-Do List
 
-## Running unit tests
+* Status: Working.
+* To-Do: Merge-right and Merge-left feature.
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## :envelope: Contact
 
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+* Repo created by [Ermal Cerhozi](https://github.com/ermalCerhozi), email: ermal.cerhozi3@gmail.com
