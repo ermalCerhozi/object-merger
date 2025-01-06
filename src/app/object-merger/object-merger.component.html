@@ -1,0 +1,335 @@
+<div class="td-wrapper" [ngClass]="outerContainerClass" [ngStyle]="outerContainerStyle">
+    @if (showToolbar) {
+        <div class="td-toolbar-wrapper" [ngClass]="toolbarClass" [ngStyle]="toolbarStyle">
+            <mat-checkbox
+                [(ngModel)]="hideMatchingLines"
+                (change)="hideMatchingLinesChanged(hideMatchingLines)"
+            >
+                Only Show Lines with Differences ({{ diffsCount }})
+            </mat-checkbox>
+
+            @if (showBtnToolbar) {
+                <div>
+                    <mat-button-toggle-group
+                        [(ngModel)]="format"
+                        (change)="setDiffTableFormat($event.value)"
+                    >
+                        @for (option of formatOptions; track $index) {
+                            <mat-button-toggle
+                                [value]="option.value"
+                                [disabled]="option.disabled"
+                            >
+                                {{ option.label }}
+                            </mat-button-toggle>
+                        }
+                    </mat-button-toggle-group>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="td-table-wrapper" [ngClass]="compareRowsClass" [ngStyle]="compareRowsStyle">
+        @if (format === 'SideBySide') {
+            <!-- Right side-by-side -->
+            <div
+                class="td-table-container side-by-side"
+                id="td-left-compare-container"
+                tdContainer
+                cdkScrollable
+            >
+                <table
+                    class="td-table"
+                    [ngClass]="{'with-borders': showBorders}"
+                >
+                    <thead>
+                        <tr [ngStyle]="{ height: rowHeight }">
+                            <th colspan="1" style="width: 24px;">
+                                <mat-checkbox
+                                    class="header-checkbox"
+                                    [(ngModel)]="isAllSelectedLeft"
+                                    (change)="toggleSelectAllLeft($event.checked)"
+                                    [disabled]="diffsCount === 0"
+                                ></mat-checkbox>
+                            </th>
+                            <th colspan="3">
+                                Imported data
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (row of filteredTableRows; track $index) {
+                            <tr [ngStyle]="{ height: rowHeight }">
+                                <td colspan="1" style="text-align: center; width: 24px;">
+                                    @if (row.hasDiffs) {
+                                        <mat-checkbox
+                                            (change)="toggleLeftSelection(row.leftContent!.lineNumber)"
+                                            [checked]="selectionLeft.isSelected(row.leftContent!.lineNumber)"
+                                        ></mat-checkbox>
+                                    }
+                                </td>
+                                <td
+                                    class="fit-column line-number-col"
+                                    [ngClass]="{
+                                        'delete-row': row.leftContent?.prefix === '-',
+                                        'empty-row': !row.leftContent?.lineContent,
+                                    }"
+                                >
+                                    {{
+                                        row.leftContent?.lineNumber !== -1
+                                            ? row.leftContent?.lineNumber
+                                            : ' '
+                                    }}
+                                </td>
+                                <td
+                                    class="fit-column prefix-col"
+                                    [ngClass]="{
+                                        'delete-row': row.leftContent?.prefix === '-',
+                                        'empty-row': !row.leftContent?.lineContent,
+                                    }"
+                                >
+                                    <span>{{ row.leftContent?.prefix || ' ' }}</span>
+                                </td>
+                                @if (!row.hasDiffs) {
+                                    <td
+                                        class="content-col"
+                                        [ngClass]="{
+                                            'delete-row': row.leftContent?.prefix === '-',
+                                            'empty-row': !row.leftContent?.lineContent,
+                                        }"
+                                    >
+                                        <span
+                                            [innerHTML]="
+                                                row.leftContent!.lineContent | formatLine
+                                            "
+                                        ></span>
+                                    </td>
+                                }
+                                @if (row.hasDiffs) {
+                                    <td
+                                        class="content-col"
+                                        [ngClass]="{
+                                            'delete-row': row.leftContent?.prefix === '-',
+                                            'empty-row': !row.leftContent?.lineContent,
+                                        }"
+                                    >
+                                        @for (
+                                            diff of row.leftContent?.lineDiffs;
+                                            track $index
+                                        ) {
+                                            <span
+                                                [innerHTML]="diff.content | formatLine"
+                                                [ngClass]="{ highlight: diff.isDiff }"
+                                            ></span>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <!-- Left side-by-side -->
+            <div
+                class="td-table-container side-by-side"
+                id="td-right-compare-container"
+                tdContainer
+                cdkScrollable
+            >
+                <table
+                    class="td-table"
+                    [ngClass]="{'with-borders': showBorders}"
+                >
+                    <thead>
+                        <tr [ngStyle]="{ height: rowHeight }">
+                            <th colspan="1" style="width: 24px;">
+                                <mat-checkbox
+                                    class="header-checkbox"
+                                    [(ngModel)]="isAllSelectedRight"
+                                    (change)="toggleSelectAllRight($event.checked)"
+                                    [disabled]="diffsCount === 0"
+                                ></mat-checkbox>
+                            </th>
+                            <th colspan="3">
+                                Generated data
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (row of filteredTableRows; track $index) {
+                            <tr [ngStyle]="{ height: rowHeight }">
+                                <td colspan="1" style="text-align: center; width: 24px;">
+                                    @if (row.hasDiffs) {
+                                        <mat-checkbox
+                                            (change)="toggleRightSelection(row.rightContent!.lineNumber)"
+                                            [checked]="selectionRight.isSelected(row.rightContent!.lineNumber)"
+                                        ></mat-checkbox>
+                                    }
+                                </td>
+                                <td
+                                    class="fit-column line-number-col"
+                                    [ngClass]="{
+                                        'insert-row': row.rightContent?.prefix === '+',
+                                        'empty-row': !row.rightContent?.lineContent,
+                                    }"
+                                >
+                                    {{
+                                        row.rightContent?.lineNumber !== -1
+                                            ? row.rightContent?.lineNumber
+                                            : ' '
+                                    }}
+                                </td>
+                                <td
+                                    class="fit-column prefix-col"
+                                    [ngClass]="{
+                                        'insert-row': row.rightContent?.prefix === '+',
+                                        'empty-row': !row.rightContent?.lineContent,
+                                    }"
+                                >
+                                    <span>{{ row.rightContent?.prefix || ' ' }}</span>
+                                </td>
+                                @if (!row.hasDiffs) {
+                                    <td
+                                        class="content-col"
+                                        [ngClass]="{
+                                            'insert-row': row.rightContent?.prefix === '+',
+                                            'empty-row': !row.rightContent?.lineContent,
+                                        }"
+                                    >
+                                        <span
+                                            [innerHTML]="
+                                                row.rightContent!.lineContent | formatLine
+                                            "
+                                        ></span>
+                                    </td>
+                                }
+                                @if (row.hasDiffs) {
+                                    <td
+                                        class="content-col"
+                                        [ngClass]="{
+                                            'insert-row': row.rightContent?.prefix === '+',
+                                            'empty-row': !row.rightContent?.lineContent,
+                                        }"
+                                    >
+                                        @for (
+                                            diff of row.rightContent?.lineDiffs;
+                                            track $index
+                                        ) {
+                                            <span
+                                                [innerHTML]="diff.content | formatLine"
+                                                [ngClass]="{ highlight: diff.isDiff }"
+                                            ></span>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (format === 'LineByLine') {
+            <!-- Line By Line - combined table -->
+            <div class="td-table-container line-by-line">
+                <table
+                    class="td-table"
+                    [ngClass]="{'with-borders': showBorders}"
+                >
+                    <tbody>
+                        @for (row of filteredTableRowsLineByLine; track $index) {
+                            <tr [ngStyle]="{ height: rowHeight }">
+                                <td class="fit-column line-number-col-left">
+                                    {{ row.leftContent?.lineNumber }}
+                                </td>
+                                <td class="fit-column line-number-col">
+                                    {{ row.rightContent?.lineNumber }}
+                                </td>
+                                <td
+                                    class="fit-column prefix-col"
+                                    [ngClass]="{
+                                        'delete-row': row.leftContent?.prefix === '-',
+                                        'insert-row': row.rightContent?.prefix === '+',
+                                    }"
+                                >
+                                    <span>{{
+                                        row.leftContent?.prefix ||
+                                            row.rightContent?.prefix ||
+                                            ' '
+                                    }}</span>
+                                </td>
+                                @if (!row.hasDiffs) {
+                                    <td
+                                        class="content-col"
+                                        [ngClass]="{
+                                            'delete-row': row.leftContent?.prefix === '-',
+                                            'insert-row': row.rightContent?.prefix === '+',
+                                        }"
+                                    >
+                                        <span
+                                            [innerHTML]="
+                                                row.leftContent!.lineContent | formatLine
+                                            "
+                                        ></span>
+                                    </td>
+                                }
+                                @if (
+                                    row.hasDiffs &&
+                                    row.leftContent &&
+                                    row.leftContent.lineDiffs.length !== 0
+                                ) {
+                                    <td
+                                        class="content-col"
+                                        [ngClass]="{
+                                            'delete-row': row.leftContent.prefix === '-',
+                                            'insert-row': row.rightContent?.prefix === '+',
+                                        }"
+                                    >
+                                        @for (diff of row.leftContent.lineDiffs; track $index) {
+                                            <span
+                                                [innerHTML]="diff.content | formatLine"
+                                                [ngClass]="{ highlight: diff.isDiff }"
+                                            ></span>
+                                        }
+                                    </td>
+                                }
+                                @if (
+                                    row.hasDiffs &&
+                                    row.rightContent &&
+                                    row.rightContent.lineDiffs.length !== 0
+                                ) {
+                                    <td
+                                        class="content-col"
+                                        [ngClass]="{
+                                            'delete-row': row.leftContent?.prefix === '-',
+                                            'insert-row': row.rightContent.prefix === '+',
+                                        }"
+                                    >
+                                        @for (
+                                            diff of row.rightContent.lineDiffs;
+                                            track $index
+                                        ) {
+                                            <span
+                                                [innerHTML]="diff.content | formatLine"
+                                                [ngClass]="{ highlight: diff.isDiff }"
+                                            ></span>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+    </div>
+    @if (format === 'SideBySide') {
+        <div class="action-buttons">
+            @if (showActionButton) {
+                <button mat-stroked-button (click)="merge()" [disabled]="isSaveButtonDisabled">
+                    Merge
+                </button>
+            }
+        </div>
+    }
+</div>
